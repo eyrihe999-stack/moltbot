@@ -58,6 +58,12 @@ export const saysoChannelPlugin: ChannelPlugin<ResolvedSaysoAccount> = {
   gateway: {
     startAccount: (ctx) => startSaysoGatewayAccount(ctx),
   },
+  messaging: {
+    targetResolver: {
+      // Accept any Feishu-style target; validation is done at Sayso ingress.
+      looksLikeId: (raw: string) => /^(open_id|user_id|chat_id):/i.test(raw.trim()),
+    },
+  },
   directory: {
     listPeers: async ({ cfg, accountId }) => {
       const sayso = getSaysoConfig(cfg);
