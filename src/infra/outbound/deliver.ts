@@ -83,6 +83,7 @@ function throwIfAborted(abortSignal?: AbortSignal): void {
 }
 
 // Channel docking: outbound delivery delegates to plugin.outbound adapters.
+// Sayso fallback: when Sayso outbound is missing (e.g. registry from another context), use Feishu.
 async function createChannelHandler(params: {
   cfg: MoltbotConfig;
   channel: Exclude<OutboundChannel, "none">;
@@ -93,10 +94,21 @@ async function createChannelHandler(params: {
   deps?: OutboundSendDeps;
   gifPlayback?: boolean;
 }): Promise<ChannelHandler> {
-  const outbound = await loadChannelOutboundAdapter(params.channel);
+  let outbound = await loadChannelOutboundAdapter(params.channel);
+  let usedSaysoFallback = false;
+
+  if ((!outbound?.sendText || !outbound?.sendMedia) && params.channel === "sayso") {
+    const feishuOutbound = await loadChannelOutboundAdapter("feishu");
+    if (feishuOutbound?.sendText && feishuOutbound?.sendMedia) {
+      outbound = feishuOutbound;
+      usedSaysoFallback = true;
+    }
+  }
+
   if (!outbound?.sendText || !outbound?.sendMedia) {
     throw new Error(`Outbound not configured for channel: ${params.channel}`);
   }
+
   const handler = createPluginHandler({
     outbound,
     cfg: params.cfg,
@@ -111,7 +123,34 @@ async function createChannelHandler(params: {
   if (!handler) {
     throw new Error(`Outbound not configured for channel: ${params.channel}`);
   }
+
+  if (params.channel === "sayso" && usedSaysoFallback) {
+    return wrapHandlerChannel(handler, "sayso");
+  }
   return handler;
+}
+
+function wrapHandlerChannel(
+  handler: ChannelHandler,
+  channel: Exclude<OutboundChannel, "none">,
+): ChannelHandler {
+  return {
+    ...handler,
+    sendText: async (text) => {
+      const result = await handler.sendText(text);
+      return { ...result, channel };
+    },
+    sendMedia: async (caption, mediaUrl) => {
+      const result = await handler.sendMedia(caption, mediaUrl);
+      return { ...result, channel };
+    },
+    sendPayload: handler.sendPayload
+      ? async (payload) => {
+          const result = await handler.sendPayload!(payload);
+          return { ...result, channel };
+        }
+      : undefined,
+  };
 }
 
 function createPluginHandler(params: {
