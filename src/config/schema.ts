@@ -301,9 +301,7 @@ const FIELD_LABELS: Record<string, string> = {
   "channels.bluebubbles": "BlueBubbles",
   "channels.msteams": "MS Teams",
   "channels.sayso": "Sayso",
-  "channels.sayso.sendToFeishu": "Sayso → Feishu",
-  "channels.sayso.sendToFeishu.enabled": "Allow Sayso → Feishu Sending",
-  "channels.sayso.sendToFeishu.targets": "Feishu Target Allowlist (open_id/user_id/chat_id)",
+  "channels.sayso.webhookPath": "Sayso Webhook Path",
   "channels.telegram.botToken": "Telegram Bot Token",
   "channels.telegram.dmPolicy": "Telegram DM Policy",
   "channels.telegram.streamMode": "Telegram Draft Stream Mode",
@@ -614,10 +612,8 @@ const FIELD_HELP: Record<string, string> = {
     "Allow iMessage to write config in response to channel events/commands (default: true).",
   "channels.msteams.configWrites":
     "Allow Microsoft Teams to write config in response to channel events/commands (default: true).",
-  "channels.sayso.sendToFeishu.enabled":
-    "Allow Sayso webhook replies to be sent to Feishu (cross-context). Default: false.",
-  "channels.sayso.sendToFeishu.targets":
-    "Allowed Feishu target(s): open_id:xx, user_id:xx, chat_id:xx. When set, only these receive Sayso replies.",
+  "channels.sayso.webhookPath":
+    "Webhook path for Sayso POST (default: /sayso/events). Outbound uses Feishu channel default.",
   "channels.discord.commands.native": 'Override native commands for Discord (bool or "auto").',
   "channels.discord.commands.nativeSkills":
     'Override native skill commands for Discord (bool or "auto").',

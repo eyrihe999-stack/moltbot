@@ -8,9 +8,6 @@ const channel = "sayso" as const;
 function getSaysoConfig(cfg: MoltbotConfig): SaysoConfig | undefined {
   const sayso = cfg.channels?.sayso as SaysoConfig | undefined;
   if (!sayso || typeof sayso !== "object") return undefined;
-  const userId = (sayso.feishuUserId as string)?.trim();
-  const chatId = (sayso.feishuChatId as string)?.trim();
-  if (!userId && !chatId) return undefined;
   return sayso;
 }
 
@@ -32,17 +29,17 @@ export const saysoOnboardingAdapter: ChannelOnboardingAdapter = {
       channel,
       configured,
       statusLines: [
-        `Sayso: ${configured ? "configured (webhook → Feishu)" : "needs Feishu user_id / chat_id + app"}`,
+        `Sayso: ${configured ? "configured (webhook → Feishu)" : "needs webhook path; outbound uses Feishu default"}`,
       ],
-      selectionHint: configured ? "configured" : "needs Feishu target + app",
+      selectionHint: configured ? "configured" : "needs webhook path",
       quickstartScore: configured ? 1 : 5,
     };
   },
   configure: async ({ cfg, prompter }) => {
     await prompter.note(
       [
-        "Sayso 发送文字到网关，网关处理后转发到飞书。只需配置飞书目标与应用信息。",
-        "请至少填写 Feishu user_id（私聊）或 chat_id（群聊）之一，以及飞书应用的 App ID / App Secret。",
+        "Sayso 仅做入站：配置 webhook 路径接收消息；出站统一走飞书通道默认配置。",
+        "请确保 channels.feishu 已配置（App ID / App Secret），以便网关向飞书发回复。",
         "",
         `文档: ${formatDocsLink("/channels/sayso", "docs.molt.bot/channels/sayso")}`,
       ].join("\n"),
@@ -54,7 +51,7 @@ export const saysoOnboardingAdapter: ChannelOnboardingAdapter = {
 
     if (!isFeishuConfigured(next)) {
       await prompter.note(
-        "飞书应用未配置，请填写 App ID 和 App Secret（用于网关向飞书发消息）。",
+        "飞书应用未配置，请填写 App ID 和 App Secret（出站发消息用）。",
         "飞书应用",
       );
       const appId = String(
@@ -85,39 +82,13 @@ export const saysoOnboardingAdapter: ChannelOnboardingAdapter = {
         };
       }
     } else {
-      await prompter.note("飞书应用已配置 (channels.feishu)，将用于转发到飞书。", "飞书应用");
-    }
-
-    const feishuUserId = String(
-      await prompter.text({
-        message: "Feishu user_id（私聊；不填则仅用 chat_id）",
-        initialValue: (existingSayso.feishuUserId as string)?.trim() ?? "",
-      }),
-    ).trim();
-
-    const feishuChatId = String(
-      await prompter.text({
-        message: "Feishu chat_id（群聊；不填则仅用 user_id）",
-        initialValue: (existingSayso.feishuChatId as string)?.trim() ?? "",
-      }),
-    ).trim();
-
-    if (!feishuUserId && !feishuChatId) {
-      await prompter.note("至少填写 Feishu user_id 或 chat_id 之一。", "Sayso");
-      return { cfg: next, accountId: "default" };
+      await prompter.note("飞书应用已配置 (channels.feishu)，出站将使用默认账号。", "飞书应用");
     }
 
     const webhookPath = String(
       await prompter.text({
-        message: "Webhook 路径（默认 /sayso/webhook，直接回车跳过）",
-        initialValue: (existingSayso.webhookPath as string)?.trim() || "/sayso/webhook",
-      }),
-    ).trim();
-
-    const secret = String(
-      await prompter.text({
-        message: "可选：Webhook 校验密钥（X-Sayso-Secret，不设则留空）",
-        initialValue: (existingSayso.secret as string)?.trim() ?? "",
+        message: "Webhook 路径（默认 /sayso/events，直接回车使用默认）",
+        initialValue: (existingSayso.webhookPath as string)?.trim() || "/sayso/events",
       }),
     ).trim();
 
@@ -126,12 +97,7 @@ export const saysoOnboardingAdapter: ChannelOnboardingAdapter = {
       channels: {
         ...next.channels,
         sayso: {
-          ...existingSayso,
           webhookPath: webhookPath || undefined,
-          feishuUserId: feishuUserId || undefined,
-          feishuChatId: feishuChatId || undefined,
-          feishuAccountId: (existingSayso.feishuAccountId as string)?.trim() || undefined,
-          secret: secret || undefined,
         },
       },
     };

@@ -17,9 +17,6 @@ import type { ChannelGatewayContext } from "./types.adapters.js";
 type SaysoGatewayAccount = {
   accountId: string;
   webhookPath?: string;
-  feishuUserId?: string;
-  feishuChatId?: string;
-  feishuAccountId?: string;
 };
 
 const SAYSO_BODY_MAX_BYTES = 512 * 1024;
@@ -61,12 +58,16 @@ export function toChatTargetString(chatId: string): string {
   return `chat_id:${s}`;
 }
 
-/** Collect Feishu target strings from request body user_id/userId and chat_id/chatId. */
+/**
+ * Collect Feishu target strings from request body by key name:
+ * user_id / userId / open_id -> user (open_id/user_id); chat_id / chatId -> chat (chat_id).
+ */
 function collectTargetsFromBody(raw: Record<string, unknown> | undefined): string[] {
   const targets: string[] = [];
   const userId =
     (typeof raw?.user_id === "string" ? raw.user_id : undefined) ??
-    (typeof raw?.userId === "string" ? raw.userId : undefined);
+    (typeof raw?.userId === "string" ? raw.userId : undefined) ??
+    (typeof raw?.open_id === "string" ? raw.open_id : undefined);
   const chatId =
     (typeof raw?.chat_id === "string" ? raw.chat_id : undefined) ??
     (typeof raw?.chatId === "string" ? raw.chatId : undefined);
@@ -75,27 +76,10 @@ function collectTargetsFromBody(raw: Record<string, unknown> | undefined): strin
   return targets;
 }
 
-/** Normalize Feishu target to canonical form for allowlist comparison. Exported for outbound-policy. */
-export function normalizeFeishuTargetForAllowlist(t: string): string {
-  const s = t.trim();
-  if (/^(open_id|user_id|chat_id):/i.test(s)) return s.toLowerCase();
-  if (/^ou_/i.test(s)) return `open_id:${s}`;
-  if (/^oc_/i.test(s)) return `chat_id:${s}`;
-  return `user_id:${s}`.toLowerCase();
-}
-
-/** Filter targets to only those in allowlist (when set). Allowlist entries can be with or without prefix. */
-function filterTargetsByAllowlist(targets: string[], allowlist: string[]): string[] {
-  if (allowlist.length === 0) return targets;
-  const set = new Set(allowlist.map(normalizeFeishuTargetForAllowlist));
-  return targets.filter((to) => set.has(normalizeFeishuTargetForAllowlist(to)));
-}
-
 function createSaysoWebhookHandler(
   ctx: ChannelGatewayContext<SaysoGatewayAccount>,
 ): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
-  const { cfg, accountId, account, runtime } = ctx;
-  const feishuAccountId = (account.feishuAccountId as string)?.trim() || undefined;
+  const { cfg, accountId, runtime } = ctx;
 
   return async (req: IncomingMessage, res: ServerResponse) => {
     const path = (req.url ?? "/").split("?")[0];
@@ -134,7 +118,7 @@ function createSaysoWebhookHandler(
 
     const targets = collectTargetsFromBody(raw);
     if (targets.length === 0) {
-      runtime.log?.(`sayso: 找不到id，请求体中未包含有效的 user_id 或 chat_id`);
+      runtime.log?.(`sayso: 请求体中未包含有效的 user_id/userId/open_id 或 chat_id/chatId`);
       sendJson(res, 200, { ok: false, error: "missing user_id or chat_id in request body" });
       return;
     }
@@ -193,31 +177,11 @@ function createSaysoWebhookHandler(
     const fullReply = deliveredChunks.join("").trim();
     if (!fullReply) return;
 
-    const sayso = cfg.channels?.sayso as SaysoConfig | undefined;
-    const sendToFeishu = sayso?.sendToFeishu;
-    if (sendToFeishu?.enabled !== true) {
-      runtime.log?.("sayso: sendToFeishu.enabled is not true; skipping Feishu delivery");
-      return;
-    }
-
-    const allowedTargets =
-      sendToFeishu.targets && sendToFeishu.targets.length > 0
-        ? filterTargetsByAllowlist(targets, sendToFeishu.targets)
-        : targets;
-    if (allowedTargets.length === 0) {
-      runtime.log?.(
-        "sayso: no targets in sendToFeishu.targets allowlist; skipping Feishu delivery",
-      );
-      return;
-    }
-
+    // Outbound uses Feishu channel default config (no accountId = default account).
     await Promise.all(
-      allowedTargets.map(async (to) => {
+      targets.map(async (to) => {
         try {
-          await sendMessageFeishu(to, fullReply, {
-            accountId: feishuAccountId,
-            rootId: undefined,
-          });
+          await sendMessageFeishu(to, fullReply, { accountId: undefined, rootId: undefined });
           runtime.log?.(`sayso: delivered reply to ${to}`);
         } catch (err) {
           runtime.error?.(`sayso: failed to send reply to ${to}: ${String(err)}`);
@@ -243,9 +207,6 @@ export function createSaysoStandaloneHandler(
     const account: SaysoGatewayAccount = {
       accountId: "default",
       webhookPath: sayso?.webhookPath,
-      feishuUserId: sayso?.feishuUserId,
-      feishuChatId: sayso?.feishuChatId,
-      feishuAccountId: sayso?.feishuAccountId,
     };
     const ctx: ChannelGatewayContext<SaysoGatewayAccount> = {
       cfg,

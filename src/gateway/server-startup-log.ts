@@ -43,14 +43,8 @@ export function logGatewayStartup(params: {
   if (params.isNixMode) {
     params.log.info("gateway: running in Nix mode (config managed externally)");
   }
-  const sayso = params.cfg.channels?.sayso as
-    | { feishuUserId?: string; feishuChatId?: string }
-    | undefined;
-  if (
-    sayso &&
-    typeof sayso === "object" &&
-    (String(sayso.feishuUserId ?? "").trim() || String(sayso.feishuChatId ?? "").trim())
-  ) {
+  const sayso = params.cfg.channels?.sayso;
+  if (sayso && typeof sayso === "object") {
     const saysoLog = params.logChannels?.sayso?.info ?? params.log.info;
     saysoLog("starting Sayso provider");
     saysoLog("sayso: http mode listening at /sayso/events");
