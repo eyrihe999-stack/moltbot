@@ -4,6 +4,11 @@ import { resolveConfiguredModelRef } from "../agents/model-selection.js";
 import type { loadConfig } from "../config/config.js";
 import { getResolvedLoggerSettings } from "../logging.js";
 
+type ChannelLogs = Record<
+  string,
+  { info: (msg: string, meta?: Record<string, unknown>) => void } | undefined
+>;
+
 export function logGatewayStartup(params: {
   cfg: ReturnType<typeof loadConfig>;
   bindHost: string;
@@ -12,6 +17,7 @@ export function logGatewayStartup(params: {
   tlsEnabled?: boolean;
   log: { info: (msg: string, meta?: Record<string, unknown>) => void };
   isNixMode: boolean;
+  logChannels?: ChannelLogs;
 }) {
   const { provider: agentProvider, model: agentModel } = resolveConfiguredModelRef({
     cfg: params.cfg,
@@ -36,5 +42,17 @@ export function logGatewayStartup(params: {
   params.log.info(`log file: ${getResolvedLoggerSettings().file}`);
   if (params.isNixMode) {
     params.log.info("gateway: running in Nix mode (config managed externally)");
+  }
+  const sayso = params.cfg.channels?.sayso as
+    | { feishuUserId?: string; feishuChatId?: string }
+    | undefined;
+  if (
+    sayso &&
+    typeof sayso === "object" &&
+    (String(sayso.feishuUserId ?? "").trim() || String(sayso.feishuChatId ?? "").trim())
+  ) {
+    const saysoLog = params.logChannels?.sayso?.info ?? params.log.info;
+    saysoLog("starting Sayso provider");
+    saysoLog("sayso: http mode listening at /sayso/events");
   }
 }

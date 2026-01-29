@@ -1,0 +1,17 @@
+{
+  "name": "@moltbot/sayso",
+  "version": "2026.1.27-beta.1",
+  "type": "module",
+  "description": "Moltbot Sayso channel: receive text from Sayso webhook and forward to Feishu",
+  "moltbot": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "moltbot": ">=2026.1.0"
+  },
+  "devDependencies": {
+    "moltbot": "workspace:*"
+  }
+}

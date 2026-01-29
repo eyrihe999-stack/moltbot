@@ -1,0 +1,17 @@
+{
+  "id": "sayso",
+  "name": "Sayso",
+  "description": "Receive text from Sayso webhook and forward to Feishu",
+  "channels": ["sayso"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "webhookPath": { "type": "string" },
+      "feishuUserId": { "type": "string" },
+      "feishuChatId": { "type": "string" },
+      "feishuAccountId": { "type": "string" },
+      "secret": { "type": "string" }
+    }
+  }
+}

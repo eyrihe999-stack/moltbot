@@ -241,16 +241,23 @@ export function handleControlUiHttpRequest(
 ): boolean {
   const urlRaw = req.url;
   if (!urlRaw) return false;
+
+  const url = new URL(urlRaw, "http://localhost");
+  const basePath = normalizeControlUiBasePath(opts?.basePath);
+  const pathname = url.pathname;
+
+  // Only handle paths that belong to Control UI; otherwise let other handlers (e.g. sayso webhook) try.
+  const isControlUiPath = basePath
+    ? pathname === basePath || pathname.startsWith(`${basePath}/`)
+    : pathname === "/ui" || pathname.startsWith("/ui/");
+  if (!isControlUiPath) return false;
+
   if (req.method !== "GET" && req.method !== "HEAD") {
     res.statusCode = 405;
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.end("Method Not Allowed");
     return true;
   }
-
-  const url = new URL(urlRaw, "http://localhost");
-  const basePath = normalizeControlUiBasePath(opts?.basePath);
-  const pathname = url.pathname;
 
   if (!basePath) {
     if (pathname === "/ui" || pathname.startsWith("/ui/")) {
@@ -266,7 +273,6 @@ export function handleControlUiHttpRequest(
       res.end();
       return true;
     }
-    if (!pathname.startsWith(`${basePath}/`)) return false;
   }
 
   const root = resolveControlUiRoot();

@@ -315,6 +315,20 @@ const DOCKS: Record<ChatChannelId, ChannelDock> = {
       formatAllowFrom: ({ allowFrom }) => formatLower(allowFrom),
     },
   },
+  sayso: {
+    id: "sayso",
+    capabilities: {
+      chatTypes: [],
+      reactions: false,
+      media: false,
+      threads: false,
+      blockStreaming: false,
+    },
+    config: {
+      resolveAllowFrom: () => [],
+      formatAllowFrom: ({ allowFrom }) => formatLower(allowFrom),
+    },
+  },
   signal: {
     id: "signal",
     capabilities: {

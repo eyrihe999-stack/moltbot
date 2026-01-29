@@ -93,10 +93,12 @@ export type {
   MSTeamsConfig,
   MSTeamsReplyStyle,
   MSTeamsTeamConfig,
+  SaysoConfig,
 } from "../config/types.js";
 export {
   DiscordConfigSchema,
   FeishuConfigSchema,
+  SaysoConfigSchema,
   GoogleChatConfigSchema,
   IMessageConfigSchema,
   MSTeamsConfigSchema,

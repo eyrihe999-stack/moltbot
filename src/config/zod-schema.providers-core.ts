@@ -511,6 +511,19 @@ export const FeishuConfigSchema = FeishuAccountSchema.extend({
   accounts: z.record(z.string(), FeishuAccountSchema.optional()).optional(),
 }).strict();
 
+export const SaysoConfigSchema = z
+  .object({
+    webhookPath: z.string().optional(),
+    feishuUserId: z.string().optional(),
+    feishuChatId: z.string().optional(),
+    feishuAccountId: z.string().optional(),
+    secret: z.string().optional(),
+  })
+  .strict()
+  .refine((v) => (v.feishuUserId?.trim() ?? "") !== "" || (v.feishuChatId?.trim() ?? "") !== "", {
+    message: "channels.sayso requires at least one of feishuUserId or feishuChatId",
+  });
+
 export const SignalAccountSchemaBase = z
   .object({
     name: z.string().optional(),

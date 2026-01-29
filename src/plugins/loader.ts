@@ -17,6 +17,7 @@ import {
 } from "./config-state.js";
 import { initializeGlobalHookRunner } from "./hook-runner-global.js";
 import { clearPluginCommands } from "./commands.js";
+import { saysoChannelPlugin } from "../channels/plugins/sayso-plugin.js";
 import { createPluginRegistry, type PluginRecord, type PluginRegistry } from "./registry.js";
 import { createPluginRuntime } from "./runtime/index.js";
 import { setActivePluginRegistry } from "./runtime.js";
@@ -174,6 +175,13 @@ export function loadMoltbotPlugins(options: PluginLoadOptions = {}): PluginRegis
   if (cacheEnabled) {
     const cached = registryCache.get(cacheKey);
     if (cached) {
+      const saysoIdx = cached.channels.findIndex((e) => e.plugin.id === "sayso");
+      if (saysoIdx >= 0) cached.channels.splice(saysoIdx, 1);
+      cached.channels.push({
+        pluginId: "sayso",
+        plugin: saysoChannelPlugin,
+        source: "core",
+      });
       setActivePluginRegistry(cached, cacheKey);
       return cached;
     }
@@ -434,6 +442,15 @@ export function loadMoltbotPlugins(options: PluginLoadOptions = {}): PluginRegis
       });
     }
   }
+
+  // Prefer core sayso (has gateway.startAccount for /sayso/events); replace any extension sayso.
+  const saysoIdx = registry.channels.findIndex((e) => e.plugin.id === "sayso");
+  if (saysoIdx >= 0) registry.channels.splice(saysoIdx, 1);
+  registry.channels.push({
+    pluginId: "sayso",
+    plugin: saysoChannelPlugin,
+    source: "core",
+  });
 
   if (typeof memorySlot === "string" && !memorySlotMatched) {
     registry.diagnostics.push({

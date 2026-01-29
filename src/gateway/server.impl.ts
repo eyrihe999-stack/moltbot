@@ -482,6 +482,7 @@ export async function startGatewayServer(
     tlsEnabled: gatewayTls.enabled,
     log,
     isNixMode,
+    logChannels: channelLogs,
   });
   scheduleGatewayUpdateCheck({ cfg: cfgAtStart, log, isNixMode });
   const tailscaleCleanup = await startGatewayTailscaleExposure({

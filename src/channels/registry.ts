@@ -11,6 +11,7 @@ export const CHAT_CHANNEL_ORDER = [
   "googlechat",
   "slack",
   "feishu",
+  "sayso",
   "signal",
   "imessage",
 ] as const;
@@ -88,6 +89,16 @@ const CHAT_CHANNEL_META: Record<ChatChannelId, ChannelMeta> = {
     docsLabel: "feishu",
     blurb: "Feishu/Lark event subscription + send message.",
     systemImage: "message",
+  },
+  sayso: {
+    id: "sayso",
+    label: "Sayso",
+    selectionLabel: "Sayso",
+    detailLabel: "Sayso → Feishu",
+    docsPath: "/channels/sayso",
+    docsLabel: "sayso",
+    blurb: "Receive text from Sayso webhook and forward to Feishu (no callback).",
+    systemImage: "arrow.triangle.2.circlepath",
   },
   signal: {
     id: "signal",

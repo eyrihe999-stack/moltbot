@@ -20,6 +20,12 @@ import { attachGatewayUpgradeHandler, createGatewayHttpServer } from "./server-h
 import type { DedupeEntry } from "./server-shared.js";
 import type { PluginRegistry } from "../plugins/registry.js";
 import type { GatewayTlsRuntime } from "./server/tls.js";
+import { loadConfig } from "../config/config.js";
+import { registerFeishuHttpHandler } from "../feishu/http/index.js";
+import {
+  createSaysoStandaloneHandler,
+  DEFAULT_SAYSO_WEBHOOK_PATH,
+} from "../channels/plugins/sayso-gateway.js";
 
 export async function createGatewayRuntimeState(params: {
   cfg: import("../config/config.js").MoltbotConfig;
@@ -102,6 +108,12 @@ export async function createGatewayRuntimeState(params: {
   const handlePluginRequest = createGatewayPluginRequestHandler({
     registry: params.pluginRegistry,
     log: params.logPlugins,
+  });
+
+  // Register /sayso/events at server init so the route exists regardless of channel start.
+  registerFeishuHttpHandler({
+    path: DEFAULT_SAYSO_WEBHOOK_PATH,
+    handler: createSaysoStandaloneHandler(loadConfig),
   });
 
   const bindHosts = await resolveGatewayListenHosts(params.bindHost);
