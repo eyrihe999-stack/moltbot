@@ -89,6 +89,10 @@ export function enforceCrossContextPolicy(params: {
     params.cfg.tools?.message?.crossContext?.allowAcrossProviders === true;
 
   if (currentProvider && currentProvider !== params.channel) {
+    // Sayso → Feishu: always allow (Sayso is inbound-only; outbound operates via Feishu).
+    if (currentProvider === "sayso" && params.channel === "feishu") {
+      return;
+    }
     if (!allowAcrossProviders) {
       throw new Error(
         `Cross-context messaging denied: action=${params.action} target provider "${params.channel}" while bound to "${currentProvider}".`,
