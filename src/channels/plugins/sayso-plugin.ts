@@ -4,6 +4,7 @@ import { DEFAULT_ACCOUNT_ID } from "../../routing/session-key.js";
 import { getChatChannelMeta } from "../registry.js";
 import { buildChannelConfigSchema } from "./config-schema.js";
 import type { ChannelPlugin } from "./types.js";
+import { saysoOutbound } from "./outbound/sayso.js";
 import { saysoOnboardingAdapter } from "./sayso-onboarding.js";
 import { startSaysoGatewayAccount } from "./sayso-gateway.js";
 
@@ -48,6 +49,7 @@ export const saysoChannelPlugin: ChannelPlugin<ResolvedSaysoAccount> = {
   gateway: {
     startAccount: (ctx) => startSaysoGatewayAccount(ctx),
   },
+  outbound: saysoOutbound,
   messaging: {
     targetResolver: {
       looksLikeId: (raw: string) => /^(open_id|user_id|chat_id):/i.test(raw.trim()),
