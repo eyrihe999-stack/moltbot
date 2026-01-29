@@ -142,6 +142,17 @@ export const feishuOnboardingAdapter: ChannelOnboardingAdapter = {
     }
 
     if (appId && appSecret) {
+      const existingWebhookPath =
+        (feishuAccountId === DEFAULT_ACCOUNT_ID
+          ? next.channels?.feishu?.webhookPath
+          : next.channels?.feishu?.accounts?.[feishuAccountId]?.webhookPath) as string | undefined;
+      const webhookPath = String(
+        await prompter.text({
+          message: "事件回调路径 (webhookPath，飞书请求地址后缀，默认 /feishu/events)",
+          initialValue: (existingWebhookPath ?? "/feishu/events").trim() || "/feishu/events",
+        }),
+      ).trim() || "/feishu/events";
+
       if (feishuAccountId === DEFAULT_ACCOUNT_ID) {
         next = {
           ...next,
@@ -152,6 +163,7 @@ export const feishuOnboardingAdapter: ChannelOnboardingAdapter = {
               enabled: true,
               appId,
               appSecret,
+              webhookPath,
             },
           },
         };
@@ -170,6 +182,7 @@ export const feishuOnboardingAdapter: ChannelOnboardingAdapter = {
                   enabled: next.channels?.feishu?.accounts?.[feishuAccountId]?.enabled ?? true,
                   appId,
                   appSecret,
+                  webhookPath,
                 },
               },
             },
@@ -177,7 +190,14 @@ export const feishuOnboardingAdapter: ChannelOnboardingAdapter = {
         };
       }
     } else if (canUseEnv && !resolvedAccount.config.appId && !resolvedAccount.config.appSecret) {
-      // User chose to use env vars, just enable the channel
+      // User chose to use env vars; still prompt for webhookPath so it appears in config
+      const existingWebhookPath = next.channels?.feishu?.webhookPath as string | undefined;
+      const webhookPath = String(
+        await prompter.text({
+          message: "事件回调路径 (webhookPath，飞书请求地址后缀，默认 /feishu/events)",
+          initialValue: (existingWebhookPath ?? "/feishu/events").trim() || "/feishu/events",
+        }),
+      ).trim() || "/feishu/events";
       next = {
         ...next,
         channels: {
@@ -185,6 +205,7 @@ export const feishuOnboardingAdapter: ChannelOnboardingAdapter = {
           feishu: {
             ...next.channels?.feishu,
             enabled: true,
+            webhookPath,
           },
         },
       };
