@@ -390,30 +390,30 @@ export async function resolveMessagingTarget(params: {
     };
   }
 
-  // Sayso: accept any Feishu-style target (with or without prefix); validation is done at Sayso ingress.
+  // Sayso: accept any non-empty target; validation is done at Sayso ingress (open_id/user_id/chat_id or bare id).
   const trimmedRaw = raw.trim();
   if (params.channel === "sayso" && trimmedRaw.length > 0) {
     const withPrefix = /^(open_id|user_id|chat_id):/i.test(trimmedRaw);
     const bareOu = /^ou_/i.test(trimmedRaw);
     const bareOc = /^oc_/i.test(trimmedRaw);
-    if (withPrefix || bareOu || bareOc) {
-      const to = withPrefix
-        ? trimmedRaw
-        : bareOc
-          ? `chat_id:${trimmedRaw}`
-          : `open_id:${trimmedRaw}`;
-      const saysoKind =
-        withPrefix && /^chat_id:/i.test(trimmedRaw) ? "group" : bareOc ? "group" : "user";
-      return {
-        ok: true,
-        target: {
-          to,
-          kind: saysoKind,
-          display: stripTargetPrefixes(raw),
-          source: "normalized",
-        },
-      };
-    }
+    const to = withPrefix
+      ? trimmedRaw
+      : bareOc
+        ? `chat_id:${trimmedRaw}`
+        : bareOu
+          ? `open_id:${trimmedRaw}`
+          : trimmedRaw;
+    const saysoKind =
+      withPrefix && /^chat_id:/i.test(trimmedRaw) ? "group" : bareOc ? "group" : "user";
+    return {
+      ok: true,
+      target: {
+        to,
+        kind: saysoKind,
+        display: stripTargetPrefixes(raw),
+        source: "normalized",
+      },
+    };
   }
 
   return {
