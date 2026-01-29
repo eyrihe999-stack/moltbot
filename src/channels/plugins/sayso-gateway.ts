@@ -75,6 +75,22 @@ function collectTargetsFromBody(raw: Record<string, unknown> | undefined): strin
   return targets;
 }
 
+/** Normalize Feishu target to canonical form for allowlist comparison. Exported for outbound-policy. */
+export function normalizeFeishuTargetForAllowlist(t: string): string {
+  const s = t.trim();
+  if (/^(open_id|user_id|chat_id):/i.test(s)) return s.toLowerCase();
+  if (/^ou_/i.test(s)) return `open_id:${s}`;
+  if (/^oc_/i.test(s)) return `chat_id:${s}`;
+  return `user_id:${s}`.toLowerCase();
+}
+
+/** Filter targets to only those in allowlist (when set). Allowlist entries can be with or without prefix. */
+function filterTargetsByAllowlist(targets: string[], allowlist: string[]): string[] {
+  if (allowlist.length === 0) return targets;
+  const set = new Set(allowlist.map(normalizeFeishuTargetForAllowlist));
+  return targets.filter((to) => set.has(normalizeFeishuTargetForAllowlist(to)));
+}
+
 function createSaysoWebhookHandler(
   ctx: ChannelGatewayContext<SaysoGatewayAccount>,
 ): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
@@ -177,8 +193,26 @@ function createSaysoWebhookHandler(
     const fullReply = deliveredChunks.join("").trim();
     if (!fullReply) return;
 
+    const sayso = cfg.channels?.sayso as SaysoConfig | undefined;
+    const sendToFeishu = sayso?.sendToFeishu;
+    if (sendToFeishu?.enabled !== true) {
+      runtime.log?.("sayso: sendToFeishu.enabled is not true; skipping Feishu delivery");
+      return;
+    }
+
+    const allowedTargets =
+      sendToFeishu.targets && sendToFeishu.targets.length > 0
+        ? filterTargetsByAllowlist(targets, sendToFeishu.targets)
+        : targets;
+    if (allowedTargets.length === 0) {
+      runtime.log?.(
+        "sayso: no targets in sendToFeishu.targets allowlist; skipping Feishu delivery",
+      );
+      return;
+    }
+
     await Promise.all(
-      targets.map(async (to) => {
+      allowedTargets.map(async (to) => {
         try {
           await sendMessageFeishu(to, fullReply, {
             accountId: feishuAccountId,

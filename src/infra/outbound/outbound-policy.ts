@@ -1,12 +1,14 @@
-import { normalizeTargetForProvider } from "./target-normalization.js";
+import { normalizeFeishuTargetForAllowlist } from "../../channels/plugins/sayso-gateway.js";
 import type {
   ChannelId,
   ChannelMessageActionName,
   ChannelThreadingToolContext,
 } from "../../channels/plugins/types.js";
 import type { MoltbotConfig } from "../../config/config.js";
+import type { SaysoConfig } from "../../config/types.sayso.js";
 import { getChannelMessageAdapter } from "./channel-adapters.js";
 import { formatTargetDisplay, lookupDirectoryDisplay } from "./target-resolver.js";
+import { normalizeTargetForProvider } from "./target-normalization.js";
 
 export type CrossContextDecoration = {
   prefix: string;
@@ -89,6 +91,28 @@ export function enforceCrossContextPolicy(params: {
     params.cfg.tools?.message?.crossContext?.allowAcrossProviders === true;
 
   if (currentProvider && currentProvider !== params.channel) {
+    // Sayso → Feishu: allow when channels.sayso.sendToFeishu.enabled; optionally restrict to sendToFeishu.targets
+    if (currentProvider === "sayso" && params.channel === "feishu") {
+      const sayso = params.cfg.channels?.sayso as SaysoConfig | undefined;
+      if (sayso?.sendToFeishu?.enabled === true) {
+        const allowlist = sayso.sendToFeishu.targets;
+        if (allowlist && allowlist.length > 0) {
+          const target = resolveContextGuardTarget(params.action, params.args);
+          if (!target) {
+            throw new Error(
+              "Cross-context sayso→feishu requires a target when sendToFeishu.targets is set.",
+            );
+          }
+          const allowed = new Set(allowlist.map(normalizeFeishuTargetForAllowlist));
+          if (!allowed.has(normalizeFeishuTargetForAllowlist(target))) {
+            throw new Error(
+              `Cross-context sayso→feishu: target "${target}" is not in channels.sayso.sendToFeishu.targets.`,
+            );
+          }
+        }
+        return;
+      }
+    }
     if (!allowAcrossProviders) {
       throw new Error(
         `Cross-context messaging denied: action=${params.action} target provider "${params.channel}" while bound to "${currentProvider}".`,

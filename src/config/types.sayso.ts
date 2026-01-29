@@ -10,4 +10,14 @@ export type SaysoConfig = {
   feishuAccountId?: string;
   /** Optional secret for webhook verification (e.g. X-Sayso-Secret header). */
   secret?: string;
+  /**
+   * Allow Sayso → Feishu cross-context sending and optional target allowlist.
+   * When enabled, webhook replies are sent to Feishu; when targets is set, only those receive.
+   */
+  sendToFeishu?: {
+    /** Allow sending to Feishu from Sayso (default: false). */
+    enabled?: boolean;
+    /** Allowed Feishu target(s): open_id:xx, user_id:xx, chat_id:xx. When set, only these receive. */
+    targets?: string[];
+  };
 };
