@@ -5,7 +5,11 @@ import { getChatChannelMeta } from "../registry.js";
 import { buildChannelConfigSchema } from "./config-schema.js";
 import type { ChannelPlugin } from "./types.js";
 import { saysoOnboardingAdapter } from "./sayso-onboarding.js";
-import { startSaysoGatewayAccount } from "./sayso-gateway.js";
+import {
+  startSaysoGatewayAccount,
+  toUserTargetString,
+  toChatTargetString,
+} from "./sayso-gateway.js";
 
 type ResolvedSaysoAccount = SaysoConfig & { accountId: string };
 
@@ -53,5 +57,21 @@ export const saysoChannelPlugin: ChannelPlugin<ResolvedSaysoAccount> = {
   },
   gateway: {
     startAccount: (ctx) => startSaysoGatewayAccount(ctx),
+  },
+  directory: {
+    listPeers: async ({ cfg, accountId }) => {
+      const sayso = getSaysoConfig(cfg);
+      const userId = (sayso?.feishuUserId as string)?.trim();
+      if (!userId) return [];
+      const id = toUserTargetString(userId);
+      return [{ kind: "user" as const, id, name: "Feishu user", handle: userId }];
+    },
+    listGroups: async ({ cfg }) => {
+      const sayso = getSaysoConfig(cfg);
+      const chatId = (sayso?.feishuChatId as string)?.trim();
+      if (!chatId) return [];
+      const id = toChatTargetString(chatId);
+      return [{ kind: "group" as const, id, name: "Feishu chat", handle: chatId }];
+    },
   },
 };

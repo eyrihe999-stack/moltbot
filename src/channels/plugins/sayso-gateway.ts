@@ -40,8 +40,9 @@ function isValidFeishuId(value: string | undefined): value is string {
 /**
  * Build Feishu target string and set receive_id_type by prefix:
  * ou_ -> open_id, else -> user_id. Pass through if already has user_id:/open_id:.
+ * Exported for Sayso directory (target resolver).
  */
-function toUserTargetString(userId: string): string {
+export function toUserTargetString(userId: string): string {
   const s = userId.trim();
   if (/^(user_id|open_id):/i.test(s)) return s;
   if (s.startsWith("ou_")) return `open_id:${s}`;
@@ -51,8 +52,9 @@ function toUserTargetString(userId: string): string {
 /**
  * Build Feishu target string and set receive_id_type to chat_id.
  * Pass through if already has chat_id:/chat:; else add chat_id: prefix.
+ * Exported for Sayso directory (target resolver).
  */
-function toChatTargetString(chatId: string): string {
+export function toChatTargetString(chatId: string): string {
   const s = chatId.trim();
   if (/^(chat_id|chat):/i.test(s)) return s;
   if (s.startsWith("oc_")) return `chat_id:${s}`;
