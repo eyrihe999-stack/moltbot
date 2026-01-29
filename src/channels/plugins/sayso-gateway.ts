@@ -100,6 +100,7 @@ function createSaysoWebhookHandler(
     }
 
     const raw = bodyResult.value as Record<string, unknown> | undefined;
+    runtime.log?.(`sayso: request body\n${JSON.stringify(raw, null, 2)}`);
 
     // 飞书事件订阅 URL 校验：必须原样返回 challenge，否则飞书报「Challenge code没有返回」
     if (raw?.type === "url_verification") {

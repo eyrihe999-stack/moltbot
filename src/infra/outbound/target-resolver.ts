@@ -390,19 +390,30 @@ export async function resolveMessagingTarget(params: {
     };
   }
 
-  // Sayso: accept any Feishu-style target (open_id/user_id/chat_id); validation is done at Sayso ingress.
+  // Sayso: accept any Feishu-style target (with or without prefix); validation is done at Sayso ingress.
   const trimmedRaw = raw.trim();
-  if (params.channel === "sayso" && /^(open_id|user_id|chat_id):/i.test(trimmedRaw)) {
-    const saysoKind = /^chat_id:/i.test(trimmedRaw) ? "group" : "user";
-    return {
-      ok: true,
-      target: {
-        to: trimmedRaw,
-        kind: saysoKind,
-        display: stripTargetPrefixes(raw),
-        source: "normalized",
-      },
-    };
+  if (params.channel === "sayso" && trimmedRaw.length > 0) {
+    const withPrefix = /^(open_id|user_id|chat_id):/i.test(trimmedRaw);
+    const bareOu = /^ou_/i.test(trimmedRaw);
+    const bareOc = /^oc_/i.test(trimmedRaw);
+    if (withPrefix || bareOu || bareOc) {
+      const to = withPrefix
+        ? trimmedRaw
+        : bareOc
+          ? `chat_id:${trimmedRaw}`
+          : `open_id:${trimmedRaw}`;
+      const saysoKind =
+        withPrefix && /^chat_id:/i.test(trimmedRaw) ? "group" : bareOc ? "group" : "user";
+      return {
+        ok: true,
+        target: {
+          to,
+          kind: saysoKind,
+          display: stripTargetPrefixes(raw),
+          source: "normalized",
+        },
+      };
+    }
   }
 
   return {
