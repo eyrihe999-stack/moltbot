@@ -1,0 +1,11 @@
+{
+  "name": "@moltbot/feishu",
+  "version": "2026.1.27-beta.1",
+  "type": "module",
+  "description": "Moltbot Feishu (飞书) channel plugin",
+  "moltbot": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

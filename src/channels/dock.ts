@@ -300,6 +300,21 @@ const DOCKS: Record<ChatChannelId, ChannelDock> = {
       buildToolContext: (params) => buildSlackThreadingToolContext(params),
     },
   },
+  feishu: {
+    id: "feishu",
+    capabilities: {
+      chatTypes: ["direct", "group", "thread"],
+      reactions: true,
+      media: true,
+      threads: true,
+      blockStreaming: true,
+    },
+    outbound: { textChunkLimit: 4000 },
+    config: {
+      resolveAllowFrom: () => [], // Feishu config has no allowFrom; allow all when enabled
+      formatAllowFrom: ({ allowFrom }) => formatLower(allowFrom),
+    },
+  },
   signal: {
     id: "signal",
     capabilities: {

@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   BlueBubblesConfigSchema,
   DiscordConfigSchema,
+  FeishuConfigSchema,
   GoogleChatConfigSchema,
   IMessageConfigSchema,
   MSTeamsConfigSchema,
@@ -32,6 +33,7 @@ export const ChannelsSchema = z
     discord: DiscordConfigSchema.optional(),
     googlechat: GoogleChatConfigSchema.optional(),
     slack: SlackConfigSchema.optional(),
+    feishu: FeishuConfigSchema.optional(),
     signal: SignalConfigSchema.optional(),
     imessage: IMessageConfigSchema.optional(),
     bluebubbles: BlueBubblesConfigSchema.optional(),

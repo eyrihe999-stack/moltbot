@@ -93,6 +93,8 @@ import { resolveAgentRoute } from "../../routing/resolve-route.js";
 import { monitorSignalProvider } from "../../signal/index.js";
 import { probeSignal } from "../../signal/probe.js";
 import { sendMessageSignal } from "../../signal/send.js";
+import { monitorFeishuProvider } from "../../feishu/index.js";
+import { sendMessageFeishu } from "../../feishu/send.js";
 import { monitorSlackProvider } from "../../slack/index.js";
 import {
   listSlackDirectoryGroupsLive,
@@ -281,6 +283,10 @@ export function createPluginRuntime(): PluginRuntime {
         sendMessageSlack,
         monitorSlackProvider,
         handleSlackAction,
+      },
+      feishu: {
+        sendMessageFeishu,
+        monitorFeishuProvider,
       },
       telegram: {
         auditGroupMembership: auditTelegramGroupMembership,

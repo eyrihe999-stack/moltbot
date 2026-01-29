@@ -113,6 +113,8 @@ type ResolveSlackUserAllowlist =
 type SendMessageSlack = typeof import("../../slack/send.js").sendMessageSlack;
 type MonitorSlackProvider = typeof import("../../slack/index.js").monitorSlackProvider;
 type HandleSlackAction = typeof import("../../agents/tools/slack-actions.js").handleSlackAction;
+type SendMessageFeishu = typeof import("../../feishu/send.js").sendMessageFeishu;
+type MonitorFeishuProvider = typeof import("../../feishu/index.js").monitorFeishuProvider;
 type AuditTelegramGroupMembership =
   typeof import("../../telegram/audit.js").auditTelegramGroupMembership;
 type CollectTelegramUnmentionedGroupIds =
@@ -293,6 +295,10 @@ export type PluginRuntime = {
       sendMessageSlack: SendMessageSlack;
       monitorSlackProvider: MonitorSlackProvider;
       handleSlackAction: HandleSlackAction;
+    };
+    feishu: {
+      sendMessageFeishu: SendMessageFeishu;
+      monitorFeishuProvider: MonitorFeishuProvider;
     };
     telegram: {
       auditGroupMembership: AuditTelegramGroupMembership;

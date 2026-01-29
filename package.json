@@ -44,6 +44,7 @@
     "dist/sessions/**",
     "dist/providers/**",
     "dist/signal/**",
+    "dist/feishu/**",
     "dist/slack/**",
     "dist/telegram/**",
     "dist/line/**",

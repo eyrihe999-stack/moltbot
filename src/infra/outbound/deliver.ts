@@ -14,6 +14,7 @@ import type { sendMessageDiscord } from "../../discord/send.js";
 import type { sendMessageIMessage } from "../../imessage/send.js";
 import { markdownToSignalTextChunks, type SignalTextStyleRange } from "../../signal/format.js";
 import { sendMessageSignal } from "../../signal/send.js";
+import type { sendMessageFeishu } from "../../feishu/send.js";
 import type { sendMessageSlack } from "../../slack/send.js";
 import type { sendMessageTelegram } from "../../telegram/send.js";
 import type { sendMessageWhatsApp } from "../../web/outbound.js";
@@ -39,6 +40,7 @@ export type OutboundSendDeps = {
   sendTelegram?: typeof sendMessageTelegram;
   sendDiscord?: typeof sendMessageDiscord;
   sendSlack?: typeof sendMessageSlack;
+  sendFeishu?: typeof sendMessageFeishu;
   sendSignal?: typeof sendMessageSignal;
   sendIMessage?: typeof sendMessageIMessage;
   sendMatrix?: SendMatrixMessage;

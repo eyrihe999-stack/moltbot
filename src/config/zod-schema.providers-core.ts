@@ -494,6 +494,23 @@ export const SlackConfigSchema = SlackAccountSchema.extend({
   }
 });
 
+export const FeishuAccountSchema = z
+  .object({
+    name: z.string().optional(),
+    appId: z.string().optional(),
+    appSecret: z.string().optional(),
+    encryptKey: z.string().optional(),
+    verificationToken: z.string().optional(),
+    webhookPath: z.string().optional(),
+    enabled: z.boolean().optional(),
+  })
+  .strict();
+
+export const FeishuConfigSchema = FeishuAccountSchema.extend({
+  webhookPath: z.string().optional().default("/feishu/events"),
+  accounts: z.record(z.string(), FeishuAccountSchema.optional()).optional(),
+}).strict();
+
 export const SignalAccountSchemaBase = z
   .object({
     name: z.string().optional(),

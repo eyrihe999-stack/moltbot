@@ -1,4 +1,5 @@
 import type { DiscordConfig } from "./types.discord.js";
+import type { FeishuConfig } from "./types.feishu.js";
 import type { GoogleChatConfig } from "./types.googlechat.js";
 import type { IMessageConfig } from "./types.imessage.js";
 import type { MSTeamsConfig } from "./types.msteams.js";
@@ -30,6 +31,7 @@ export type ChannelsConfig = {
   discord?: DiscordConfig;
   googlechat?: GoogleChatConfig;
   slack?: SlackConfig;
+  feishu?: FeishuConfig;
   signal?: SignalConfig;
   imessage?: IMessageConfig;
   msteams?: MSTeamsConfig;

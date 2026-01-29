@@ -96,6 +96,7 @@ export type {
 } from "../config/types.js";
 export {
   DiscordConfigSchema,
+  FeishuConfigSchema,
   GoogleChatConfigSchema,
   IMessageConfigSchema,
   MSTeamsConfigSchema,
@@ -292,6 +293,15 @@ export {
   normalizeSlackMessagingTarget,
 } from "../channels/plugins/normalize/slack.js";
 export { buildSlackThreadingToolContext } from "../slack/threading-tool-context.js";
+
+// Channel: Feishu
+export {
+  listEnabledFeishuAccounts,
+  listFeishuAccountIds,
+  resolveDefaultFeishuAccountId,
+  resolveFeishuAccount,
+  type ResolvedFeishuAccount,
+} from "../feishu/accounts.js";
 
 // Channel: Telegram
 export {
