@@ -390,6 +390,21 @@ export async function resolveMessagingTarget(params: {
     };
   }
 
+  // Sayso: accept any Feishu-style target (open_id/user_id/chat_id); validation is done at Sayso ingress.
+  const trimmedRaw = raw.trim();
+  if (params.channel === "sayso" && /^(open_id|user_id|chat_id):/i.test(trimmedRaw)) {
+    const saysoKind = /^chat_id:/i.test(trimmedRaw) ? "group" : "user";
+    return {
+      ok: true,
+      target: {
+        to: trimmedRaw,
+        kind: saysoKind,
+        display: stripTargetPrefixes(raw),
+        source: "normalized",
+      },
+    };
+  }
+
   return {
     ok: false,
     error: unknownTargetError(providerLabel, raw, hint),
