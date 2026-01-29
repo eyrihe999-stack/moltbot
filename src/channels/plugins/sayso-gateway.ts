@@ -98,6 +98,15 @@ function createSaysoWebhookHandler(
     }
 
     const raw = bodyResult.value as Record<string, unknown> | undefined;
+
+    // 飞书事件订阅 URL 校验：必须原样返回 challenge，否则飞书报「Challenge code没有返回」
+    if (raw?.type === "url_verification") {
+      const challenge = typeof raw.challenge === "string" ? raw.challenge : "";
+      runtime.log?.("sayso: feishu url_verification");
+      sendJson(res, 200, { challenge });
+      return;
+    }
+
     const text = typeof raw?.text === "string" ? raw.text.trim() : "";
     if (!text) {
       sendJson(res, 400, { error: "missing or empty text" });
